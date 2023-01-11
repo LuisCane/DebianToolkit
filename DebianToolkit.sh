@@ -15,6 +15,8 @@ nc="\e[0m"
 si=✔
 no=✘
 
+WORKINGDIR=$(pwd)
+
 # This is a general-purpose function to ask Yes/No questions in Bash, either
 # with or without a default answer. It keeps repeating the question until it
 # gets a valid answer.
@@ -164,30 +166,6 @@ UpdateFlatpak() {
     fi
 }
 
-#SetupZSH
-SetupZSH() {
-    if IsRoot; then
-        if CheckForPackage zsh; then
-            if ask "Would you like to setup ZSH?" Y; then
-                $PKGMGR install -y zsh zsh-syntax-highlighting zsh-autosuggestions
-                check_exit_status
-                DefinedSHELL=/bin/zsh
-                usermod --shell $DefinedSHELL root
-                CopyZshrcFile
-            else
-                printf '\nSkipping ZSH Setup.\n'
-            fi
-        fi
-    fi
-    if ask "Would you like to set ZSH as your shell?" Y; then
-        DefinedSHELL=/bin/zsh
-        chsh -s $DefinedSHELL
-        CopyZshrcFile
-    else
-        printf '\nSkipping zsh Setup.\n'
-    fi
-}
-
 #Install Selected desktop Apt packages
 InstallAptSW() {
     file='./apt-list'
@@ -199,34 +177,6 @@ InstallAptSW() {
             printf '\nSkipping %s, already installed.\n' "$line"
         fi     
     done 3< "$file"
-}
-
-#CopyZshrcFile
-CopyZshrcFile() {
-    if IsRoot; then
-        if ask "Would you like to copy the zshrc file included with this script to your home directory?" Y; then
-            rcfile=./rcfiles/zshrc
-            if [[ -f "$rcfile" ]]; then
-                cp ./rcfiles/zshrc /root/.zshrc
-                cp ./rcfiles/zshrc /etc/skel/.zshrc
-            else
-                printf "\nThe zshrc file is not in the expected path. Please run this script from inside the script directory."
-            fi
-        else
-            printf "\nSkipping zshrc file.\n"
-        fi
-    elif ! CheckForPackage zsh; then
-        if ask "Would you like to copy the zshrc file included with this script to your home directory?" Y; then
-            rcfile=./rcfiles/zshrc
-            if [[ -f "$rcfile" ]]; then
-                cp ./rcfiles/zshrc /home/$USER/.zshrc
-            else
-                printf "\nThe zshrc file is not in the expected path. Please run this script from inside the script directory."                
-            fi
-        else
-            printf "\nSkipping zshrc file.\n"
-        fi
-    fi
 }
 
 function banner (){
@@ -253,7 +203,6 @@ clear
 checkroot
 clear
 banner
-APTAPPS=
 PKGMGR=apt
 DefinedSHELL=/bin/bash
 if IsRoot; then
@@ -284,37 +233,15 @@ fi
 #update system
 UpdateSoftware
 
-if IsRoot; then
-    if CheckForPackage vim; then
-        if ask "Would you like to install VIM?" Y; then
-            InstallPKG vim
-        else
-            printf '\nSkipping VIM install.\n'
-        fi
-    fi
-fi
-
-if IsRoot; then
-    if CheckForPackage sudo; then 
-        if ask "Would you like to install sudo?" Y; then
-            InstallPKG sudo
-        else
-            printf '\nSkipping sudo setup.\n'
-        fi
-    fi
-fi
-
-SetupZSH
-
 printf "\n$a Installing tools in Debian $nc\n"
 sleep 1
 printf "\n  [$v$si$b] nerd fonts\n"
 sleep 1
 cd /usr/local/share/fonts
-mv /root/DebianToolkit/box/Hack.zip .
+mv /opt/DebianToolkit/box/Hack.zip .
 unzip Hack.zip
 rm -rf Hack.zip
-cd /root/DebianToolkit/
+cd /opt/DebianToolkit/
 printf "\n  [$v$si$b] hash-id\n"
 sleep 1
 cd box
