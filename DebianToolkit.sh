@@ -188,6 +188,19 @@ SetupZSH() {
     fi
 }
 
+#Install Selected desktop Apt packages
+InstallAptSW() {
+    file='./apt-list'
+    while read -r line <&3; do
+        if CheckForPackage $line; then
+            printf "\n$PKGMGR install $line\n"
+            $PKGMGR install -y "$line"
+        else
+            printf '\nSkipping %s, already installed.\n' "$line"
+        fi     
+    done 3< "$file"
+}
+
 #CopyZshrcFile
 CopyZshrcFile() {
     if IsRoot; then
@@ -291,6 +304,8 @@ if IsRoot; then
     fi
 fi
 
+SetupZSH
+
 printf "\n$a Installing tools in Debian $nc\n"
 sleep 1
 printf "\n  [$v$si$b] nerd fonts\n"
@@ -344,5 +359,6 @@ sleep 1
 cd box
 dpkg -i lsd_0.14.0_amd64.deb
 cd ..
+InstallAptSW
 tput cnorm
 exit
